@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-  spec.name         = "MZTableView"
+  spec.name         = "MZHTableView"
   spec.version      = "0.0.1"
   spec.summary      = "高性能横向TableView，支持cell复用"
   spec.homepage     = "https://github.com/1691665955/MZTableView"
