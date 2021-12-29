@@ -8,7 +8,7 @@
 import UIKit
 
 @objc
-protocol MZTableViewDelegate: NSObjectProtocol {
+public protocol MZTableViewDelegate: NSObjectProtocol {
     
     /// tableView列数
     /// - Parameter tableView: MZTableView
@@ -33,10 +33,10 @@ protocol MZTableViewDelegate: NSObjectProtocol {
     @objc optional func tableView(_ tableView: MZTableView, didSelectAt column: Int)
 }
 
-class MZTableView: UIView, UIScrollViewDelegate {
+open class MZTableView: UIView, UIScrollViewDelegate {
     
     /// 代理
-    weak open var delegate: MZTableViewDelegate?
+    public weak var delegate: MZTableViewDelegate?
     
     /// 额外可见cell个数，用来适配scrollview滚动时cell显示的连续性
     private var extraVisibleCount: Int = 2
@@ -62,12 +62,12 @@ class MZTableView: UIView, UIScrollViewDelegate {
     /// 存储注册的nib
     private lazy var nibForClassDictionary: [String: AnyClass] = [String: AnyClass]()
     
-    required init?(coder: NSCoder) {
+    public required init?(coder: NSCoder) {
         super.init(coder: coder)
         setup()
     }
     
-    override init(frame: CGRect) {
+    public override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
@@ -76,7 +76,7 @@ class MZTableView: UIView, UIScrollViewDelegate {
         self.addSubview(self.contentView)
     }
     
-    override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         self.contentView.frame = self.bounds
         for cell in self.contentView.subviews {
@@ -101,7 +101,7 @@ class MZTableView: UIView, UIScrollViewDelegate {
     /// - Parameters:
     ///   - cellClass: cell类
     ///   - identifier: cell标签
-    open func register(_ cellClass: AnyClass?, forCellReuseIdentifier identifier: String) {
+    public func register(_ cellClass: AnyClass?, forCellReuseIdentifier identifier: String) {
         self.registerDictionary[identifier] = cellClass
     }
     
@@ -109,7 +109,7 @@ class MZTableView: UIView, UIScrollViewDelegate {
     /// - Parameters:
     ///   - nib: cell相关nib
     ///   - identifier: cell标签
-    open func register(_ nib: UINib?, forCellReuseIdentifier identifier: String) {
+    public func register(_ nib: UINib?, forCellReuseIdentifier identifier: String) {
         self.registerDictionary[identifier] = nib
         let classObject: AnyClass? = (nib?.instantiate(withOwner: nib, options: nil).first as AnyObject).classForCoder
         self.nibForClassDictionary[identifier] = classObject
@@ -118,7 +118,7 @@ class MZTableView: UIView, UIScrollViewDelegate {
     /// 通过已组册的identifier来获取cell
     /// - Parameter identifier: cell标签
     /// - Returns: cell
-    open func dequeueReusableCell(withIdentifier identifier: String) -> UIView {
+    public func dequeueReusableCell(withIdentifier identifier: String) -> UIView {
         guard let object = self.registerDictionary[identifier] else {
             return UIView()
         }
@@ -159,7 +159,7 @@ class MZTableView: UIView, UIScrollViewDelegate {
     
     /// 刷新数据
     /// - Parameter toLeft: 是否滚动到最左边
-    open func reloadData(_ toLeft:Bool = false) {
+    public func reloadData(_ toLeft:Bool = false) {
         self.contentView.subviews.forEach { view in
             view.removeFromSuperview()
         }
@@ -205,28 +205,8 @@ class MZTableView: UIView, UIScrollViewDelegate {
     }
     
     //MARK:- UIScrollViewDelegate
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         self.updateUI(with: scrollView.contentOffset)
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        let scrollToScrollStop = !scrollView.isTracking && !scrollView.isDragging && !scrollView.isDecelerating;
-        if (scrollToScrollStop) {
-            self.scrollViewDidEndScroll();
-        }
-    }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate {
-            let scrollToScrollStop = !scrollView.isTracking && !scrollView.isDragging && !scrollView.isDecelerating;
-            if (scrollToScrollStop) {
-                self.scrollViewDidEndScroll();
-            }
-        }
-    }
-    
-    func scrollViewDidEndScroll() {
-        print("visible:\(self.visibleCellArray.count)、unVisible:\(self.unVisibleCellArray.count)")
     }
     
     /// 根据scrollview的偏移量来更新UI
