@@ -46,6 +46,7 @@ class ViewController: UIViewController, MZTableViewDelegate {
     lazy var tableView: MZTableView = {
         let tableView = MZTableView(frame: CGRect(x: 0, y: 100, width: SCREEN_WIDTH, height: 100))
         tableView.delegate = self
+        tableView.isPagingEnabled = true
         tableView.register(TableViewCell.classForCoder(), forCellReuseIdentifier: "TableViewCell")
         return tableView
     }()

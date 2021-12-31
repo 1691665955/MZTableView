@@ -22,6 +22,8 @@ pod 'MZHTableView', '~> 0.0.1'
 let tableView = MZTableView(frame: CGRect(x: 0, y: 100, width: SCREEN_WIDTH, height: 100))
 // 代理
 tableView.delegate = self
+// 是否按页面宽度滚动
+tableView.isPagingEnabled = true
 // 注册class,实现cell复用功能
 tableView.register(MZHTableViewCell.classForCoder(), forCellReuseIdentifier: "MZHTableViewCell")
 self.view.addSubview(tableView)

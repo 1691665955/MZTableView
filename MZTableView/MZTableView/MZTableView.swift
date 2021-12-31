@@ -38,6 +38,13 @@ open class MZTableView: UIView, UIScrollViewDelegate {
     /// 代理
     public weak var delegate: MZTableViewDelegate?
     
+    /// 按照页面宽度滚动
+    public var isPagingEnabled: Bool = false {
+        didSet {
+            contentView.isPagingEnabled = isPagingEnabled
+        }
+    }
+    
     /// 额外可见cell个数，用来适配scrollview滚动时cell显示的连续性
     private var extraVisibleCount: Int = 2
     
