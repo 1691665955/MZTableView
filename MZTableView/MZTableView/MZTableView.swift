@@ -97,10 +97,6 @@ open class MZTableView: UIView, UIScrollViewDelegate {
     
     /// 额外可见cell个数，用来适配scrollview滚动时cell显示的连续性
     private func getExtraVisibleCount() -> Int {
-        self.extraVisibleCount = Int(self.frame.width / 2.0 / self.getMinWithFormCells()) + 1
-        if self.extraVisibleCount < 2 {
-            self.extraVisibleCount = 2
-        }
         return self.extraVisibleCount
     }
     
@@ -179,19 +175,27 @@ open class MZTableView: UIView, UIScrollViewDelegate {
         }
         
         var width:CGFloat = 0
+        var minWidth:CGFloat = self.frame.width
         for i in 0..<(self.delegate?.tableView(numberOfColumnsIn: self))! {
-            if width >= self.contentView.contentOffset.x - (self.delegate?.tableView(self, widthAt: i))! && width <= self.frame.width + self.contentView.contentOffset.x {
+            let itemWidth = (self.delegate?.tableView(self, widthAt: i))!
+            if width >= self.contentView.contentOffset.x - itemWidth && width <= self.frame.width + self.contentView.contentOffset.x {
                 let cell = (self.delegate?.tableView(self, cellAt: i))!
                 self.setupTapGesture(for: cell)
-                cell.frame = CGRect(x: width, y: 0, width: (self.delegate?.tableView(self, widthAt: i))!, height: self.frame.height)
+                cell.frame = CGRect(x: width, y: 0, width: itemWidth, height: self.frame.height)
                 self.contentView.addSubview(cell)
                 self.visibleCellArray.append(cell)
             }
             width += (self.delegate?.tableView(self, widthAt: i))!
+            if itemWidth < minWidth {
+                minWidth = itemWidth
+            }
         }
         self.contentView.contentSize = CGSize(width: width, height: 0)
         
-        
+        self.extraVisibleCount = Int(self.frame.width / 2.0 / minWidth) + 1
+        if self.extraVisibleCount < 2 {
+            self.extraVisibleCount = 2
+        }
     }
     
     /// 如果cell未添加过点击事件，则给cell添加点击事件
@@ -223,12 +227,18 @@ open class MZTableView: UIView, UIScrollViewDelegate {
             //如果左边被覆盖的cell个数小于额外可见数，则添加不足的cell到scrollview中，并添加到visibleCellArray中，如果cell是从unVisibleCellArray中取出，则把cell从unVisibleCellArray中移除
             let firstCell = self.visibleCellArray.first!
             let first = self.getFirstColumn(by: contentOffset.x)
-            if first >= 0 && first <= self.getColumn(for: firstCell) {
+            let firstColumn = self.getColumn(for: firstCell)
+            if first >= 0 && first <= firstColumn {
                 let start = (first - self.getExtraVisibleCount()) >= 0 ? (first - self.getExtraVisibleCount()) : 0
-                for i in (start..<self.getColumn(for: firstCell)).reversed(){
+                var originX = -1.0
+                for i in (start..<firstColumn).reversed(){
+                    if originX < 0.0 {
+                        originX = self.getCellOriginX(by: i)
+                    }
+                    let itemWidth = (self.delegate?.tableView(self, widthAt: i))!
                     let cell = (self.delegate?.tableView(self, cellAt: i))!
                     self.setupTapGesture(for: cell)
-                    cell.frame = CGRect(x: self.getCellOriginX(by: i), y: 0, width: (self.delegate?.tableView(self, widthAt: i))!, height: self.frame.height)
+                    cell.frame = CGRect(x: originX, y: 0, width: itemWidth, height: self.frame.height)
                     self.contentView.addSubview(cell)
                     self.visibleCellArray.insert(cell, at: 0)
                     for index in 0..<self.unVisibleCellArray.count {
@@ -238,18 +248,25 @@ open class MZTableView: UIView, UIScrollViewDelegate {
                             break
                         }
                     }
+                    originX -= itemWidth
                 }
             }
             
             //如果右边被覆盖的cell个数小于额外可见数，则添加不足的cell到scrollview中，并添加到visibleCellArray中，如果cell是从unVisibleCellArray中取出，则把cell从unVisibleCellArray中移除
             let lastCell = self.visibleCellArray.last!
             let last = self.getLastColumn(by: contentOffset.x)
-            if last <= (self.delegate?.tableView(numberOfColumnsIn: self))! - 1 && last >= self.getColumn(for: lastCell) {
-                let end = last + self.getExtraVisibleCount() < (self.delegate?.tableView(numberOfColumnsIn: self))! ? last + self.getExtraVisibleCount() : (self.delegate?.tableView(numberOfColumnsIn: self))!
+            let columnCount = (self.delegate?.tableView(numberOfColumnsIn: self))!
+            if last <= columnCount - 1 && last >= self.getColumn(for: lastCell) {
+                let end = last + self.getExtraVisibleCount() < columnCount ? last + self.getExtraVisibleCount() : columnCount
+                var originX = -1.0
                 for i in (self.getColumn(for: lastCell) + 1)..<end {
+                    if originX < 0.0 {
+                        originX = self.getCellOriginX(by: i)
+                    }
+                    let itemWidth = (self.delegate?.tableView(self, widthAt: i))!
                     let cell = (self.delegate?.tableView(self, cellAt: i))!
                     self.setupTapGesture(for: cell)
-                    cell.frame = CGRect(x: self.getCellOriginX(by: i), y: 0, width: (self.delegate?.tableView(self, widthAt: i))!, height: self.frame.height)
+                    cell.frame = CGRect(x: originX, y: 0, width: itemWidth, height: self.frame.height)
                     self.contentView.addSubview(cell)
                     self.visibleCellArray.append(cell)
                     for index in 0..<self.unVisibleCellArray.count {
@@ -259,6 +276,7 @@ open class MZTableView: UIView, UIScrollViewDelegate {
                             break
                         }
                     }
+                    originX += itemWidth
                 }
             }
         }
@@ -341,24 +359,6 @@ open class MZTableView: UIView, UIScrollViewDelegate {
             }
         }
         return 0
-    }
-    
-    
-    /// 获取所有Cell的最小宽度
-    /// - Returns: 最小宽度
-    private func getMinWithFormCells() -> CGFloat {
-        let count = (self.delegate?.tableView(numberOfColumnsIn: self))!
-        if count == 0 {
-            return self.frame.width
-        } else {
-            var width: CGFloat = (self.delegate?.tableView(self, widthAt: 0))!
-            for i in 1..<count {
-                if (self.delegate?.tableView(self, widthAt: i))! < width {
-                    width = (self.delegate?.tableView(self, widthAt: i))!
-                }
-            }
-            return width
-        }
     }
     
     /// 根据cell列数获取到cell的x
