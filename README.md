@@ -14,7 +14,7 @@
 
 #### Cocoapods 引入
 ```
-pod 'MZHTableView', '~> 0.0.1'
+pod 'MZHTableView', '~> 0.0.2'
 ```
 
 #### 使用
