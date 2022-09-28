@@ -175,7 +175,7 @@ open class MZTableView: UIView, UIScrollViewDelegate {
         }
         
         var width:CGFloat = 0
-        var minWidth:CGFloat = self.frame.width
+        var minWidth:CGFloat = (self.frame.width == 0 ? 100 : self.frame.width)
         for i in 0..<(self.delegate?.tableView(numberOfColumnsIn: self))! {
             let itemWidth = (self.delegate?.tableView(self, widthAt: i))!
             if width >= self.contentView.contentOffset.x - itemWidth && width <= self.frame.width + self.contentView.contentOffset.x {
@@ -185,7 +185,7 @@ open class MZTableView: UIView, UIScrollViewDelegate {
                 self.contentView.addSubview(cell)
                 self.visibleCellArray.append(cell)
             }
-            width += (self.delegate?.tableView(self, widthAt: i))!
+            width += itemWidth
             if itemWidth < minWidth {
                 minWidth = itemWidth
             }
