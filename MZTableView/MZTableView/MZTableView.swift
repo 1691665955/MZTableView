@@ -31,6 +31,13 @@ public protocol MZTableViewDelegate: NSObjectProtocol {
     ///   - tableView: MZTableView
     ///   - column: 列数
     @objc optional func tableView(_ tableView: MZTableView, didSelectAt column: Int)
+    
+    /// column列被点击了
+    /// - Parameters:
+    ///   - tableView: MZTableView
+    ///   - column: 列数
+    ///   - cell: cell
+    @objc optional func tableView(_ tableView: MZTableView, didSelectAt column: Int, cell: UIView)
 }
 
 open class MZTableView: UIView, UIScrollViewDelegate {
@@ -213,6 +220,7 @@ open class MZTableView: UIView, UIScrollViewDelegate {
         if self.delegate != nil && self.delegate!.responds(to: #selector(MZTableViewDelegate.tableView(_:didSelectAt:))) {
             self.delegate?.tableView?(self, didSelectAt: column)
         }
+        self.delegate?.tableView?(self, didSelectAt: column, cell: cell)
     }
     
     //MARK:- UIScrollViewDelegate
